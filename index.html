@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0,
+    maximum-scale=1.0, user-scalable=no"
+  >
+
+  <title>Pieces of Us</title>
+
+  <style>
+    :root {
+      --pink: #e95d87;
+      --pink-dark: #bd3e68;
+      --pink-light: #ffe7ef;
+      --cream: #fffaf4;
+      --brown: #5b4037;
+      --green: #548b68;
+      --white: #ffffff;
+      --shadow: rgba(88, 55, 63, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 12px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      font-family:
+        "Pretendard",
+        "Apple SD Gothic Neo",
+        "Malgun Gothic",
+        Arial,
+        sans-serif;
+
+      color: var(--brown);
+
+      background:
+        radial-gradient(
+          circle at top left,
+          #ffe5ed 0,
+          transparent 35%
+        ),
+        radial-gradient(
+          circle at bottom right,
+          #f8dfe8 0,
+          transparent 38%
+        ),
+        linear-gradient(
+          135deg,
+          #fffaf2,
+          #fbedf2
+        );
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .game-shell {
+      width: min(100%, 720px);
+      padding: 18px;
+
+      background: rgba(255, 255, 255, 0.96);
+      border: 2px solid rgba(233, 93, 135, 0.14);
+      border-radius: 28px;
+
+      box-shadow:
+        0 20px 55px var(--shadow);
+    }
+
+    .main-title {
+      margin: 2px 0 4px;
+
+      text-align: center;
+      color: var(--pink-dark);
+
+      font-size: clamp(1.8rem, 7vw, 2.7rem);
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin: 0 0 14px;
+
+      text-align: center;
+      color: #8a6873;
+
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .round-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+
+      margin-bottom: 12px;
+    }
+
+    .round-step {
+      padding: 8px 4px;
+
+      text-align: center;
+
+      color: #9b7a84;
+      background: #fff6f8;
+      border: 1px solid #f1d6df;
+      border-radius: 12px;
+
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .round-step.active {
+      color: white;
+      background: var(--pink);
+      border-color: var(--pink);
+
+      box-shadow:
+        0 5px 12px rgba(233, 93, 135, 0.25);
+    }
+
+    .round-step.completed {
+      color: #386148;
+      background: #e6f5eb;
+      border-color: #b9ddc5;
+    }
+
+    .game-info {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 7px;
+
+      margin-bottom: 10px;
+    }
+
+    .info-card {
+      min-width: 0;
+      padding: 8px 4px;
+
+      text-align: center;
+
+      background: var(--cream);
+      border: 1px solid #f1dfd1;
+      border-radius: 12px;
+    }
+
+    .info-label {
+      display: block;
+      margin-bottom: 3px;
+
+      color: #96796f;
+
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .info-value {
+      display: block;
+
+      font-size: 0.92rem;
+      font-weight: 900;
+
+      overflow-wrap: anywhere;
+    }
+
+    .puzzle-toolbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+
+      margin-bottom: 10px;
+    }
+
+    .toolbar-button {
+      min-height: 44px;
+      padding: 9px 10px;
+
+      border: 0;
+      border-radius: 13px;
+
+      color: white;
+      background: var(--pink);
+
+      font-weight: 900;
+      cursor: pointer;
+
+      box-shadow:
+        0 5px 12px rgba(233, 93, 135, 0.2);
+    }
+
+    .toolbar-button.secondary {
+      color: var(--brown);
+      background: #f4ece5;
+
+      box-shadow: none;
+    }
+
+    .toolbar-button:active {
+      transform: scale(0.98);
+    }
+
+    .toolbar-button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .puzzle-frame {
+      position: relative;
+
+      width: min(100%, 620px);
+      margin: 0 auto;
+
+      overflow: hidden;
+
+      background: #ece2dc;
+      border: 4px solid white;
+      border-radius: 18px;
+
+      box-shadow:
+        0 12px 26px rgba(75, 50, 57, 0.2);
+    }
+
+    .puzzle-board {
+      position: relative;
+
+      display: grid;
+
+      width: 100%;
+      aspect-ratio: 1 / 1;
+
+      overflow: hidden;
+
+      background: #eee5df;
+      touch-action: manipulation;
+    }
+
+    .puzzle-piece {
+      position: relative;
+
+      width: 100%;
+      height: 100%;
+
+      border: 0.5px solid rgba(255, 255, 255, 0.62);
+      padding: 0;
+
+      background-repeat: no-repeat;
+
+      cursor: pointer;
+
+      transition:
+        transform 0.13s ease,
+        filter 0.13s ease,
+        box-shadow 0.13s ease;
+    }
+
+    .puzzle-piece:active {
+      transform: scale(0.95);
+    }
+
+    .puzzle-piece.selected {
+      z-index: 5;
+
+      transform: scale(0.9);
+
+      filter:
+        brightness(1.15)
+        saturate(1.2);
+
+      box-shadow:
+        inset 0 0 0 4px #ffdc54,
+        0 0 0 3px white;
+    }
+
+    .piece-number {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+
+      min-width: 17px;
+      height: 17px;
+      padding: 1px 3px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      color: white;
+      background: rgba(53, 40, 43, 0.48);
+      border-radius: 5px;
+
+      font-size: 0.55rem;
+      font-weight: 900;
+
+      pointer-events: none;
+    }
+
+    .original-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      padding: 10px;
+
+      background: rgba(32, 23, 26, 0.9);
+
+      opacity: 0;
+      visibility: hidden;
+
+      transition:
+        opacity 0.2s,
+        visibility 0.2s;
+    }
+
+    .original-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .original-image {
+      width: 100%;
+      height: 100%;
+
+      object-fit: contain;
+
+      border-radius: 10px;
+    }
+
+    .hint-countdown {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+
+      min-width: 44px;
+      padding: 7px 10px;
+
+      text-align: center;
+
+      color: white;
+      background: rgba(0, 0, 0, 0.65);
+      border-radius: 999px;
+
+      font-weight: 900;
+    }
+
+    .message-line {
+      min-height: 25px;
+      margin: 10px 0 0;
+
+      text-align: center;
+      color: #8b6672;
+
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      padding: 18px;
+
+      background:
+        rgba(60, 38, 44, 0.58);
+
+      backdrop-filter: blur(7px);
+    }
+
+    .screen.hidden {
+      display: none;
+    }
+
+    .modal-card {
+      width: min(100%, 460px);
+      padding: 28px 22px;
+
+      text-align: center;
+
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 26px;
+
+      box-shadow:
+        0 24px 70px rgba(38, 22, 27, 0.3);
+    }
+
+    .modal-icon {
+      margin-bottom: 7px;
+
+      font-size: 4rem;
+      line-height: 1;
+    }
+
+    .modal-card h2 {
+      margin: 5px 0 9px;
+
+      color: var(--pink-dark);
+
+      font-size: 1.8rem;
+    }
+
+    .modal-card h3 {
+      margin: 5px 0 12px;
+
+      font-size: 1.15rem;
+    }
+
+    .modal-card p {
+      margin: 7px 0;
+
+      line-height: 1.55;
+    }
+
+    .round-list {
+      margin: 18px 0;
+      padding: 0;
+
+      list-style: none;
+
+      text-align: left;
+    }
+
+    .round-list li {
+      margin-bottom: 7px;
+      padding: 10px 12px;
+
+      background: #fff6f8;
+      border: 1px solid #f2d9e1;
+      border-radius: 11px;
+
+      font-weight: 800;
+    }
+
+    .primary-button {
+      width: 100%;
+      max-width: 260px;
+      min-height: 48px;
+      margin-top: 15px;
+      padding: 12px 18px;
+
+      border: 0;
+      border-radius: 999px;
+
+      color: white;
+      background:
+        linear-gradient(
+          135deg,
+          var(--pink),
+          var(--pink-dark)
+        );
+
+      font-size: 1rem;
+      font-weight: 900;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 8px 18px rgba(189, 62, 104, 0.28);
+    }
+
+    .primary-button:active {
+      transform: scale(0.98);
+    }
+
+    .completed-photo {
+      width: min(100%, 330px);
+      max-height: 330px;
+      margin: 10px auto;
+
+      display: block;
+
+      object-fit: contain;
+
+      border: 5px solid white;
+      border-radius: 14px;
+
+      box-shadow:
+        0 8px 20px rgba(76, 48, 57, 0.2);
+    }
+
+    .final-phrase {
+      margin-top: 15px !important;
+
+      color: var(--pink-dark);
+
+      font-size: 1.1rem;
+      font-weight: 900;
+    }
+
+    .heart-row {
+      margin: 12px 0 2px;
+
+      font-size: 1.7rem;
+      letter-spacing: 4px;
+
+      animation:
+        heart-pulse 0.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes heart-pulse {
+      from {
+        transform: scale(0.93);
+      }
+
+      to {
+        transform: scale(1.07);
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 6px;
+        align-items: flex-start;
+      }
+
+      .game-shell {
+        padding: 10px;
+        border-radius: 20px;
+      }
+
+      .main-title {
+        margin-top: 4px;
+      }
+
+      .subtitle {
+        font-size: 0.8rem;
+      }
+
+      .game-info {
+        grid-template-columns: 1.25fr 1fr 1fr;
+      }
+
+      .info-value {
+        font-size: 0.82rem;
+      }
+
+      .puzzle-frame {
+        border-width: 3px;
+        border-radius: 14px;
+      }
+
+      .piece-number {
+        min-width: 13px;
+        height: 13px;
+        font-size: 0.45rem;
+      }
+
+      .modal-card {
+        padding: 23px 17px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="game-shell">
+
+    <h1 class="main-title">
+      Pieces of Us
+    </h1>
+
+    <p class="subtitle">
+      Piece by piece, our memories come together.
+    </p>
+
+    <section class="round-steps">
+
+      <div
+        class="round-step active"
+        id="roundStep0"
+      >
+        Round 1<br>
+        Dongho · 4×4
+      </div>
+
+      <div
+        class="round-step"
+        id="roundStep1"
+      >
+        Round 2<br>
+        Ehwa · 6×6
+      </div>
+
+      <div
+        class="round-step"
+        id="roundStep2"
+      >
+        Round 3<br>
+        Us · 8×8
+      </div>
+
+    </section>
+
+    <section class="game-info">
+
+      <div class="info-card">
+        <span class="info-label">
+          현재 라운드
+        </span>
+
+        <span
+          class="info-value"
+          id="roundValue"
+        >
+          Dongho
+        </span>
+      </div>
+
+      <div class="info-card">
+        <span class="info-label">
+          이동 횟수
+        </span>
+
+        <span
+          class="info-value"
+          id="movesValue"
+        >
+          0
+        </span>
+      </div>
+
+      <div class="info-card">
+        <span class="info-label">
+          시간
+        </span>
+
+        <span
+          class="info-value"
+          id="timeValue"
+        >
+          00:00
+        </span>
+      </div>
+
+    </section>
+
+    <section class="puzzle-toolbar">
+
+      <button
+        type="button"
+        class="toolbar-button"
+        id="hintButton"
+      >
+        🔍 원본 보기
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-button secondary"
+        id="shuffleButton"
+      >
+        🔀 다시 섞기
+      </button>
+
+    </section>
+
+    <section class="puzzle-frame">
+
+      <div
+        class="puzzle-board"
+        id="puzzleBoard"
+      ></div>
+
+      <div
+        class="original-overlay"
+        id="originalOverlay"
+      >
+        <img
+          class="original-image"
+          id="originalImage"
+          alt="퍼즐 원본 사진"
+        >
+
+        <div
+          class="hint-countdown"
+          id="hintCountdown"
+        >
+          3
+        </div>
+      </div>
+
+    </section>
+
+    <p
+      class="message-line"
+      id="messageLine"
+    >
+      교환할 조각 두 개를 차례로 눌러주세요.
+    </p>
+
+  </main>
+
+  <section
+    class="screen"
+    id="startScreen"
+  >
+
+    <div class="modal-card">
+
+      <div class="modal-icon">🧩💕</div>
+
+      <h2>Pieces of Us</h2>
+
+      <p>
+        두 조각을 차례로 누르면<br>
+        서로 위치가 바뀝니다.
+      </p>
+
+      <ul class="round-list">
+        <li>1️⃣ Dongho · 4×4 · 16 pieces</li>
+        <li>2️⃣ Ehwa · 6×6 · 36 pieces</li>
+        <li>3️⃣ Us · 8×8 · 64 pieces</li>
+      </ul>
+
+      <p>
+        원본 보기는 각 라운드에서<br>
+        언제든 3초간 사용할 수 있어요.
+      </p>
+
+      <button
+        type="button"
+        class="primary-button"
+        id="startButton"
+      >
+        Start Our Puzzle
+      </button>
+
+    </div>
+
+  </section>
+
+  <section
+    class="screen hidden"
+    id="roundCompleteScreen"
+  >
+
+    <div class="modal-card">
+
+      <div class="modal-icon">✨🧩✨</div>
+
+      <h2>Perfect</h2>
+
+      <h3>Memory Restored</h3>
+
+      <img
+        class="completed-photo"
+        id="completedPhoto"
+        alt="완성된 퍼즐"
+      >
+
+      <p id="roundResultText"></p>
+
+      <button
+        type="button"
+        class="primary-button"
+        id="nextRoundButton"
+      >
+        Next Round
+      </button>
+
+    </div>
+
+  </section>
+
+  <section
+    class="screen hidden"
+    id="finalScreen"
+  >
+
+    <div class="modal-card">
+
+      <div class="modal-icon">💕🧩💕</div>
+
+      <h2>Perfect</h2>
+
+      <h3>Memory Restored</h3>
+
+      ./Us.jpg
+
+      <div class="heart-row">
+        ❤️ ❤️ ❤️
+      </div>
+
+      <p class="final-phrase">
+        Out of everyone in the world,<br>
+        we found each other.
+      </p>
+
+      <p id="finalResultText"></p>
+
+      <button
+        type="button"
+        class="primary-button"
+        id="restartButton"
+      >
+        Play Again
+      </button>
+
+    </div>
+
+  </section>
+
+  <script>
+    "use strict";
+
+    const rounds = [
+      {
+        name: "Dongho",
+        image: "./Dongho.jpg",
+        size: 4,
+        message: "We Found Each Other."
+      },
+      {
+        name: "Ehwa",
+        image: "./Ehwa.jpg",
+        size: 6,
+        message: "Every journey leads somewhere."
+      },
+      {
+        name: "Us",
+        image: "./Us.jpg",
+        size: 8,
+        message:
+          "Out of everyone in the world, we found each other."
+      }
+    ];
+
+    const puzzleBoard =
+      document.getElementById("puzzleBoard");
+
+    const roundValue =
+      document.getElementById("roundValue");
+
+    const movesValue =
+      document.getElementById("movesValue");
+
+    const timeValue =
+      document.getElementById("timeValue");
+
+    const hintButton =
+      document.getElementById("hintButton");
+
+    const shuffleButton =
+      document.getElementById("shuffleButton");
+
+    const originalOverlay =
+      document.getElementById("originalOverlay");
+
+    const originalImage =
+      document.getElementById("originalImage");
+
+    const hintCountdown =
+      document.getElementById("hintCountdown");
+
+    const messageLine =
+      document.getElementById("messageLine");
+
+    const startScreen =
+      document.getElementById("startScreen");
+
+    const roundCompleteScreen =
+      document.getElementById(
+        "roundCompleteScreen"
+      );
+
+    const finalScreen =
+      document.getElementById("finalScreen");
+
+    const completedPhoto =
+      document.getElementById("completedPhoto");
+
+    const roundResultText =
+      document.getElementById(
+        "roundResultText"
+      );
+
+    const finalResultText =
+      document.getElementById(
+        "finalResultText"
+      );
+
+    const startButton =
+      document.getElementById("startButton");
+
+    const nextRoundButton =
+      document.getElementById(
+        "nextRoundButton"
+      );
+
+    const restartButton =
+      document.getElementById(
+        "restartButton"
+      );
+
+    let currentRoundIndex = 0;
+
+    let pieces = [];
+    let firstSelectedPosition = null;
+
+    let moves = 0;
+
+    let roundStartTime = 0;
+    let totalStartTime = 0;
+
+    let timerInterval = null;
+
+    let roundCompleted = false;
+    let gameStarted = false;
+
+    let hintActive = false;
+    let hintInterval = null;
+
+    function formatTime(
+      totalSeconds
+    ) {
+      const minutes =
+        Math.floor(totalSeconds / 60);
+
+      const seconds =
+        totalSeconds % 60;
+
+      return (
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(seconds).padStart(2, "0")
+      );
+    }
+
+    function getElapsedSeconds(
+      startTimestamp
+    ) {
+      return Math.floor(
+        (Date.now() - startTimestamp) /
+        1000
+      );
+    }
+
+    function updateTimer() {
+      if (
+        !gameStarted ||
+        roundCompleted
+      ) {
+        return;
+      }
+
+      const seconds =
+        getElapsedSeconds(
+          roundStartTime
+        );
+
+      timeValue.textContent =
+        formatTime(seconds);
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+
+      updateTimer();
+
+      timerInterval =
+        setInterval(
+          updateTimer,
+          250
+        );
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function createSolvedPieces(
+      pieceCount
+    ) {
+      return Array.from(
+        {
+          length: pieceCount
+        },
+
+        function (_, index) {
+          return index;
+        }
+      );
+    }
+
+    function shufflePieces(
+      originalPieces
+    ) {
+      const shuffled =
+        [...originalPieces];
+
+      for (
+        let index =
+          shuffled.length - 1;
+
+        index > 0;
+
+        index--
+      ) {
+        const randomIndex =
+          Math.floor(
+            Math.random() *
+            (index + 1)
+          );
+
+        const temporary =
+          shuffled[index];
+
+        shuffled[index] =
+          shuffled[randomIndex];
+
+        shuffled[randomIndex] =
+          temporary;
+      }
+
+      const stillSolved =
+        shuffled.every(
+          function (
+            pieceNumber,
+            position
+          ) {
+            return (
+              pieceNumber === position
+            );
+          }
+        );
+
+      if (stillSolved) {
+        const temporary =
+          shuffled[0];
+
+        shuffled[0] =
+          shuffled[1];
+
+        shuffled[1] =
+          temporary;
+      }
+
+      return shuffled;
+    }
+
+    function isPuzzleSolved() {
+      return pieces.every(
+        function (
+          pieceNumber,
+          position
+        ) {
+          return (
+            pieceNumber === position
+          );
+        }
+      );
+    }
+
+    function updateRoundSteps() {
+      rounds.forEach(
+        function (_, index) {
+          const step =
+            document.getElementById(
+              "roundStep" + index
+            );
+
+          step.classList.remove(
+            "active",
+            "completed"
+          );
+
+          if (
+            index <
+            currentRoundIndex
+          ) {
+            step.classList.add(
+              "completed"
+            );
+          }
+
+          if (
+            index ===
+            currentRoundIndex
+          ) {
+            step.classList.add(
+              "active"
+            );
+          }
+        }
+      );
+    }
+
+    function buildRound() {
+      const round =
+        rounds[currentRoundIndex];
+
+      const pieceCount =
+        round.size *
+        round.size;
+
+      pieces =
+        shufflePieces(
+          createSolvedPieces(
+            pieceCount
+          )
+        );
+
+      firstSelectedPosition = null;
+      moves = 0;
+      roundCompleted = false;
+      hintActive = false;
+
+      movesValue.textContent = "0";
+      timeValue.textContent = "00:00";
+
+      roundValue.textContent =
+        round.name +
+        " · " +
+        round.size +
+        "×" +
+        round.size;
+
+      messageLine.textContent =
+        "교환할 조각 두 개를 차례로 눌러주세요.";
+
+      originalImage.src =
+        round.image;
+
+      hintButton.disabled = false;
+      shuffleButton.disabled = false;
+
+      updateRoundSteps();
+      renderPuzzle();
+
+      roundStartTime = Date.now();
+      startTimer();
+    }
+
+    function renderPuzzle() {
+      const round =
+        rounds[currentRoundIndex];
+
+      const size = round.size;
+
+      puzzleBoard.innerHTML = "";
+
+      puzzleBoard.style.gridTemplateColumns =
+        `repeat(${size}, 1fr)`;
+
+      puzzleBoard.style.gridTemplateRows =
+        `repeat(${size}, 1fr)`;
+
+      pieces.forEach(
+        function (
+          originalPieceIndex,
+          currentPosition
+        ) {
+          const piece =
+            document.createElement(
+              "button"
+            );
+
+          piece.type = "button";
+
+          piece.className =
+            "puzzle-piece";
+
+          piece.dataset.position =
+            currentPosition;
+
+          const originalRow =
+            Math.floor(
+              originalPieceIndex /
+              size
+            );
+
+          const originalColumn =
+            originalPieceIndex %
+            size;
+
+          const horizontalPosition =
+            size === 1
+              ? 0
+              : (
+                  originalColumn /
+                  (size - 1)
+                ) * 100;
+
+          const verticalPosition =
+            size === 1
+              ? 0
+              : (
+                  originalRow /
+                  (size - 1)
+                ) * 100;
+
+          piece.style.backgroundImage =
+            `url("${round.image}")`;
+
+          piece.style.backgroundSize =
+            `${size * 100}% ${size * 100}%`;
+
+          piece.style.backgroundPosition =
+            `${horizontalPosition}% ${verticalPosition}%`;
+
+          if (
+            firstSelectedPosition ===
+            currentPosition
+          ) {
+            piece.classList.add(
+              "selected"
+            );
+          }
+
+          const number =
+            document.createElement(
+              "span"
+            );
+
+          number.className =
+            "piece-number";
+
+          number.textContent =
+            originalPieceIndex + 1;
+
+          piece.appendChild(number);
+
+          piece.addEventListener(
+            "click",
+            function () {
+              selectPiece(
+                currentPosition
+              );
+            }
+          );
+
+          puzzleBoard.appendChild(
+            piece
+          );
+        }
+      );
+    }
+
+    function selectPiece(
+      position
+    ) {
+      if (
+        roundCompleted ||
+        hintActive
+      ) {
+        return;
+      }
+
+      if (
+        firstSelectedPosition === null
+      ) {
+        firstSelectedPosition =
+          position;
+
+        messageLine.textContent =
+          "이제 교환할 두 번째 조각을 눌러주세요.";
+
+        renderPuzzle();
+        return;
+      }
+
+      if (
+        firstSelectedPosition ===
+        position
+      ) {
+        firstSelectedPosition =
+          null;
+
+        messageLine.textContent =
+          "선택을 취소했습니다.";
+
+        renderPuzzle();
+        return;
+      }
+
+      const temporary =
+        pieces[
+          firstSelectedPosition
+        ];
+
+      pieces[
+        firstSelectedPosition
+      ] = pieces[position];
+
+      pieces[position] =
+        temporary;
+
+      firstSelectedPosition = null;
+
+      moves += 1;
+
+      movesValue.textContent =
+        moves;
+
+      messageLine.textContent =
+        "조각을 교환했습니다.";
+
+      renderPuzzle();
+
+      if (isPuzzleSolved()) {
+        completeRound();
+      }
+    }
+
+    function completeRound() {
+      roundCompleted = true;
+
+      stopTimer();
+
+      hintButton.disabled = true;
+      shuffleButton.disabled = true;
+
+      const round =
+        rounds[currentRoundIndex];
+
+      const roundSeconds =
+        getElapsedSeconds(
+          roundStartTime
+        );
+
+      completedPhoto.src =
+        round.image;
+
+      roundResultText.innerHTML =
+        `<strong>${round.message}</strong><br>` +
+        `${moves} moves · ${formatTime(roundSeconds)}`;
+
+      if (
+        currentRoundIndex ===
+        rounds.length - 1
+      ) {
+        setTimeout(
+          showFinalScreen,
+          350
+        );
+      } else {
+        nextRoundButton.textContent =
+          `Go to Round ${
+            currentRoundIndex + 2
+          }`;
+
+        setTimeout(
+          function () {
+            roundCompleteScreen
+              .classList
+              .remove("hidden");
+          },
+          350
+        );
+      }
+    }
+
+    function showFinalScreen() {
+      const totalSeconds =
+        getElapsedSeconds(
+          totalStartTime
+        );
+
+      finalResultText.innerHTML =
+        `All 3 memories completed.<br>` +
+        `<strong>Total time: ` +
+        `${formatTime(totalSeconds)}</strong>`;
+
+      finalScreen
+        .classList
+        .remove("hidden");
+    }
+
+    function showOriginalHint() {
+      if (
+        hintActive ||
+        roundCompleted
+      ) {
+        return;
+      }
+
+      hintActive = true;
+
+      firstSelectedPosition =
+        null;
+
+      renderPuzzle();
+
+      originalOverlay
+        .classList
+        .add("visible");
+
+      hintButton.disabled = true;
+      shuffleButton.disabled = true;
+
+      let remainingSeconds = 3;
+
+      hintCountdown.textContent =
+        remainingSeconds;
+
+      messageLine.textContent =
+        "원본 사진을 기억하세요!";
+
+      clearInterval(hintInterval);
+
+      hintInterval =
+        setInterval(
+          function () {
+            remainingSeconds -= 1;
+
+            hintCountdown.textContent =
+              remainingSeconds;
+
+            if (
+              remainingSeconds <= 0
+            ) {
+              clearInterval(
+                hintInterval
+              );
+
+              hintInterval = null;
+
+              originalOverlay
+                .classList
+                .remove("visible");
+
+              hintActive = false;
+
+              hintButton.disabled =
+                false;
+
+              shuffleButton.disabled =
+                false;
+
+              messageLine.textContent =
+                "교환할 조각 두 개를 차례로 눌러주세요.";
+            }
+          },
+          1000
+        );
+    }
+
+    function reshuffleCurrentRound() {
+      if (
+        roundCompleted ||
+        hintActive
+      ) {
+        return;
+      }
+
+      const confirmed =
+        window.confirm(
+          "현재 라운드를 다시 섞을까요?\n이동 횟수와 시간도 초기화됩니다."
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      buildRound();
+    }
+
+    function startGame() {
+      currentRoundIndex = 0;
+      gameStarted = true;
+
+      totalStartTime = Date.now();
+
+      startScreen
+        .classList
+        .add("hidden");
+
+      roundCompleteScreen
+        .classList
+        .add("hidden");
+
+      finalScreen
+        .classList
+        .add("hidden");
+
+      buildRound();
+    }
+
+    function goToNextRound() {
+      roundCompleteScreen
+        .classList
+        .add("hidden");
+
+      currentRoundIndex += 1;
+
+      buildRound();
+    }
+
+    function restartGame() {
+      stopTimer();
+
+      clearInterval(hintInterval);
+
+      hintInterval = null;
+
+      originalOverlay
+        .classList
+        .remove("visible");
+
+      startGame();
+    }
+
+    startButton.addEventListener(
+      "click",
+      startGame
+    );
+
+    nextRoundButton.addEventListener(
+      "click",
+      goToNextRound
+    );
+
+    restartButton.addEventListener(
+      "click",
+      restartGame
+    );
+
+    hintButton.addEventListener(
+      "click",
+      showOriginalHint
+    );
+
+    shuffleButton.addEventListener(
+      "click",
+      reshuffleCurrentRound
+    );
+
+    window.addEventListener(
+      "beforeunload",
+      function () {
+        stopTimer();
+
+        clearInterval(
+          hintInterval
+        );
+      }
+    );
+
+    /*
+      시작 화면 뒤로 빈 퍼즐판이 보이지 않도록
+      최초 라운드의 정보만 미리 표시합니다.
+    */
+    originalImage.src =
+      rounds[0].image;
+
+    roundValue.textContent =
+      "Dongho · 4×4";
+  </script>
+
+</body>
+</html>
